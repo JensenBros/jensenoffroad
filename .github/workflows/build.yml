@@ -1,21 +1,17 @@
 name: Build & deploy site
 
-# Runs the generator (build.ps1), which pulls new videos from YouTube, regenerates
-# the pages + home grid + sitemap, then deploys the site to GitHub Pages.
-
 on:
   schedule:
-    # 3x/day, at :17 past the hour to avoid GitHub's busy top-of-hour (UTC).
-    - cron: '17 5,13,21 * * *'
-  workflow_dispatch: {}   # the manual "Run workflow" / publish-now button
+    # 3x/day in Mountain Time (auto-adjusts for daylight saving). :17 dodges GitHub's busy top-of-hour.
+    - cron: '17 8,14,18 * * *'
+      timezone: 'America/Denver'
+  workflow_dispatch: {}
 
-# Let the build commit the updated catalog back, and publish to Pages.
 permissions:
   contents: write
   pages: write
   id-token: write
 
-# Never run two deploys at once.
 concurrency:
   group: pages-deploy
   cancel-in-progress: false
@@ -56,9 +52,8 @@ jobs:
         run: |
           if (Test-Path _site) { Remove-Item _site -Recurse -Force }
           New-Item -ItemType Directory -Force _site | Out-Null
-          Copy-Item index.html, styles.css, site.js, logo.svg, logo-light.svg, sitemap.xml _site\
+          Copy-Item index.html, all-videos.html, styles.css, site.js, logo.svg, logo-light.svg, sitemap.xml, robots.txt _site\
           Copy-Item -Recurse -Force videos _site\videos
-          # Custom domain + skip Jekyll processing
           Set-Content -Path _site\CNAME -Value 'jensenoffroad.com' -NoNewline
           New-Item -ItemType File -Force _site\.nojekyll | Out-Null
 
