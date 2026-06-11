@@ -78,6 +78,19 @@ function Best-Thumb($thumbs, $id) {
   return "https://i.ytimg.com/vi/$id/hqdefault.jpg"
 }
 
+# Set or add a NoteProperty (entries from older runs won't have the new fields yet).
+function Set-Prop($obj, [string]$name, $value) { $obj | Add-Member -NotePropertyName $name -NotePropertyValue $value -Force }
+
+# Readable label from a Wikipedia topic URL, e.g. ".../wiki/Off-roading" -> "Off-roading".
+function Topic-Name([string]$url) {
+  $seg = ($url -split '/wiki/')[-1]
+  try { $seg = [System.Uri]::UnescapeDataString($seg) } catch { }
+  ($seg -replace '_', ' ').Trim()
+}
+
+# Coerce a possibly-null API list into a real array (avoid @(null) -> 1-element array).
+function As-Array($x) { if ($null -eq $x) { return , @() } else { return , @($x) } }   # comma-wrap so a single-element list isn't unwrapped to a scalar on return
+
 # ---------- load catalog ----------
 if (-not (Test-Path $dataPath)) { throw "videos.json not found at $dataPath" }
 $data = [System.IO.File]::ReadAllText($dataPath) | ConvertFrom-Json
@@ -110,15 +123,24 @@ if (-not $NoFetch -and $apiKey) {
       $token = $resp.nextPageToken
     } while ($token)
 
-    # 3) durations + view counts (batches of 50)
+    # 3) full details (batches of 50): snippet (full description, tags, category),
+    #    contentDetails (duration), statistics (views/likes/comments),
+    #    topicDetails (topic categories), recordingDetails (recording date)
     $details = @{}
     $ids = @($items.Keys)
     for ($i = 0; $i -lt $ids.Count; $i += 50) {
       $hi = [math]::Min($i + 49, $ids.Count - 1)
       $batch = ($ids[$i..$hi]) -join ','
-      $vr = Invoke-RestMethod -TimeoutSec 30 -Uri "https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=$batch&key=$apiKey"
+      $vr = Invoke-RestMethod -TimeoutSec 30 -Uri "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics,topicDetails,recordingDetails&id=$batch&key=$apiKey"
       foreach ($v in $vr.items) { $details[$v.id] = $v }
     }
+
+    # 3b) one-time category id -> name map (cached for the run)
+    $catMap = @{}
+    try {
+      $cr = Invoke-RestMethod -TimeoutSec 30 -Uri "https://www.googleapis.com/youtube/v3/videoCategories?part=snippet&regionCode=US&key=$apiKey"
+      foreach ($c in $cr.items) { $catMap[[string]$c.id] = [string]$c.snippet.title }
+    } catch { Write-Warning "videoCategories.list failed; category names will be blank." }
 
     # 4) merge into the catalog (preserve slugs; never drop a known video on a partial pull)
     $existing = @{}
@@ -140,23 +162,28 @@ if (-not $NoFetch -and $apiKey) {
       }
       $pub = $it.contentDetails.videoPublishedAt
       if (-not $pub) { $pub = $it.snippet.publishedAt }
-      $thumb = Best-Thumb $it.snippet.thumbnails $vid
+      $sn = $det.snippet      # full snippet from videos.list (full description, tags, category)
+      $st = if ($det.statistics) { $det.statistics } else { [pscustomobject]@{} }   # stats can be hidden on some videos; never let one null crash the whole merge
+
+      # New entry gets a slug once (never changed); existing entry is reused.
       if ($null -eq $existingEntry) {
-        $entry = [pscustomobject]@{
-          id = $vid; slug = (New-Slug (Clean-Title ([string]$it.snippet.title)) $used)
-          title = [string]$it.snippet.title; description = [string]$it.snippet.description
-          publishedAt = [string]$pub; duration = [string]$det.contentDetails.duration
-          viewCount = [int64]$det.statistics.viewCount; thumbnail = $thumb
-        }
+        $entry = [pscustomobject]@{ id = $vid; slug = (New-Slug (Clean-Title ([string]$sn.title)) $used) }
       } else {
-        $existingEntry.title = [string]$it.snippet.title
-        $existingEntry.description = [string]$it.snippet.description
-        $existingEntry.publishedAt = [string]$pub
-        $existingEntry.duration = [string]$det.contentDetails.duration
-        $existingEntry.viewCount = [int64]$det.statistics.viewCount
-        if ($thumb) { $existingEntry | Add-Member -NotePropertyName thumbnail -NotePropertyValue $thumb -Force }
         $entry = $existingEntry
       }
+
+      Set-Prop $entry 'title'           ([string]$sn.title)
+      Set-Prop $entry 'description'     ([string]$sn.description)          # full description (videos.list, not the truncated playlist one)
+      Set-Prop $entry 'publishedAt'     ([string]$pub)
+      Set-Prop $entry 'duration'        ([string]$det.contentDetails.duration)
+      Set-Prop $entry 'viewCount'       ([int64]$st.viewCount)
+      Set-Prop $entry 'thumbnail'       (Best-Thumb $it.snippet.thumbnails $vid)
+      Set-Prop $entry 'tags'            (As-Array $sn.tags)
+      Set-Prop $entry 'categoryName'    $(if ($sn.categoryId -and $catMap.ContainsKey([string]$sn.categoryId)) { $catMap[[string]$sn.categoryId] } else { '' })
+      Set-Prop $entry 'topicCategories' (As-Array $det.topicDetails.topicCategories)
+      Set-Prop $entry 'likeCount'       $(if ($st.PSObject.Properties['likeCount']) { [int64]$st.likeCount } else { $null })
+      Set-Prop $entry 'commentCount'    $(if ($st.PSObject.Properties['commentCount']) { [int64]$st.commentCount } else { $null })
+      Set-Prop $entry 'recordingDate'   $(if ($det.recordingDetails -and $det.recordingDetails.recordingDate) { [string]$det.recordingDetails.recordingDate } else { '' })
       [void]$newList.Add($entry)
     }
     # Completeness guard: only accept the fetched catalog if it isn't suspiciously
@@ -187,6 +214,15 @@ $sorted = @($data.videos | Sort-Object {
     [void][datetimeoffset]::TryParse($_.publishedAt, [ref]$dt)
     $dt
   } -Descending)
+
+# Precompute a tag+topic key-set per video so "related" can be topical (fast O(1) lookups).
+$keySets = @{}
+foreach ($v in $sorted) {
+  $set = New-Object 'System.Collections.Generic.HashSet[string]'
+  foreach ($t in (As-Array $v.tags)) { if ($t) { [void]$set.Add(([string]$t).ToLowerInvariant()) } }
+  foreach ($t in (As-Array $v.topicCategories)) { if ($t) { [void]$set.Add(([string]$t).ToLowerInvariant()) } }
+  $keySets[$v.id] = $set
+}
 
 # ---------- renderers ----------
 function Render-Card($v, [string]$prefix) {
@@ -225,6 +261,47 @@ function Render-VideoPage($v, $all) {
   $ogImage = if ($v.PSObject.Properties['thumbnail'] -and $v.thumbnail) { [string]$v.thumbnail } else { $hqUrl }
   $thumbList = @($ogImage); if ($ogImage -ne $hqUrl) { $thumbList += $hqUrl }
 
+  # ----- enrichment fields (all optional / guarded) -----
+  $tags = As-Array $v.tags
+  $topics = As-Array $v.topicCategories
+  $catName = if ($v.PSObject.Properties['categoryName']) { [string]$v.categoryName } else { '' }
+  $likeCount = $null;    if ($v.likeCount)    { try { $likeCount    = [int64]$v.likeCount }    catch {} }
+  $commentCount = $null; if ($v.commentCount) { try { $commentCount = [int64]$v.commentCount } catch {} }
+  $recPretty = ''
+  if ($v.PSObject.Properties['recordingDate'] -and $v.recordingDate) {
+    $rd = Date-Fmt ([string]$v.recordingDate) 'MMMM d, yyyy'
+    if ($rd -and $rd -ne 'January 1, 1970') { $recPretty = $rd }
+  }
+
+  # visible stats line (date / views / likes / comments / filmed-on)
+  $statBits = @("<span>$datePretty</span>", "<span>$viewsPretty views</span>")
+  if ($likeCount)    { $statBits += '<span>' + (Views-Fmt $likeCount)    + ' likes</span>' }
+  if ($commentCount) { $statBits += '<span>' + (Views-Fmt $commentCount) + ' comments</span>' }
+  if ($recPretty)    { $statBits += '<span>Filmed ' + (HtmlEnc $recPretty) + '</span>' }
+  $statsHtml = ($statBits -join '<span class="dot">&bull;</span>')
+
+  # category + topic entity links (visible)
+  $topoParts = @()
+  if ($catName) { $topoParts += '<span class="topic-cat">' + (HtmlEnc $catName) + '</span>' }
+  foreach ($u in $topics) {
+    $tn = Topic-Name ([string]$u)
+    if ($tn) { $topoParts += '<a class="topic" href="' + (HtmlEnc ([string]$u)) + '" target="_blank" rel="noopener">' + (HtmlEnc $tn) + '</a>' }
+  }
+  $topicsHtml = ''
+  if ($topoParts.Count -gt 0) { $topicsHtml = '<div class="topics"><span class="topics-label">Topics:</span> ' + ($topoParts -join ' ') + '</div>' }
+
+  # multi-paragraph description (split on blank lines; single newlines become <br />)
+  $descHtml = (($descClean -split '(?:\r?\n){2,}' | Where-Object { $_.Trim() -ne '' } | ForEach-Object { '<p>' + ((HtmlEnc $_.Trim()) -replace '\r?\n', '<br />') + '</p>' }) -join "`n        ")
+  if (-not $descHtml) { $descHtml = "<p>$descEnc</p>" }
+
+  # tag chips (visible)
+  $tagsHtml = ''
+  if ($tags.Count -gt 0) {
+    $chips = (($tags | Select-Object -First 18 | ForEach-Object { '<span class="tag">' + (HtmlEnc ([string]$_)) + '</span>' }) -join '')
+    $tagsHtml = '<div class="tags" aria-label="Tags">' + $chips + '</div>'
+  }
+
+  # ----- VideoObject JSON-LD (mirrors the visible content above) -----
   $ld = [ordered]@{
     '@context' = 'https://schema.org'; '@type' = 'VideoObject'
     name = $cleanTitle; description = $descClean
@@ -234,11 +311,43 @@ function Render-VideoPage($v, $all) {
   if ($v.duration) { $ld['duration'] = $v.duration }
   $ld['embedUrl'] = "https://www.youtube.com/embed/$id"
   $ld['contentUrl'] = "https://www.youtube.com/watch?v=$id"
-  $ld['interactionStatistic'] = [ordered]@{ '@type' = 'InteractionCounter'; interactionType = [ordered]@{ '@type' = 'https://schema.org/WatchAction' }; userInteractionCount = [int64]$v.viewCount }
+  if ($tags.Count -gt 0) { $ld['keywords'] = ($tags -join ', ') }
+  if ($catName) { $ld['genre'] = $catName }
+  if ($topics.Count -gt 0) {
+    $ld['about'] = @($topics | ForEach-Object { [ordered]@{ '@type' = 'Thing'; name = (Topic-Name ([string]$_)); sameAs = [string]$_ } })
+  }
+  $interactions = @([ordered]@{ '@type' = 'InteractionCounter'; interactionType = [ordered]@{ '@type' = 'https://schema.org/WatchAction' }; userInteractionCount = [int64]$v.viewCount })
+  if ($likeCount)    { $interactions += [ordered]@{ '@type' = 'InteractionCounter'; interactionType = [ordered]@{ '@type' = 'https://schema.org/LikeAction' };    userInteractionCount = $likeCount } }
+  if ($commentCount) { $interactions += [ordered]@{ '@type' = 'InteractionCounter'; interactionType = [ordered]@{ '@type' = 'https://schema.org/CommentAction' }; userInteractionCount = $commentCount } }
+  $ld['interactionStatistic'] = $interactions
   $ld['publisher'] = [ordered]@{ '@type' = 'Organization'; name = 'Jensen Off-Road'; logo = [ordered]@{ '@type' = 'ImageObject'; url = "$siteUrl/logo.svg" } }
   $jsonld = ($ld | ConvertTo-Json -Depth 8) -replace ([char]0x3c), ([char]0x5c + 'u003c')
 
-  $others = @($all | Where-Object { $_.id -ne $id } | Select-Object -First 3)
+  # ----- BreadcrumbList JSON-LD (matches the visible breadcrumb) -----
+  $crumb = [ordered]@{
+    '@context' = 'https://schema.org'; '@type' = 'BreadcrumbList'
+    itemListElement = @(
+      [ordered]@{ '@type' = 'ListItem'; position = 1; name = 'Home'; item = "$siteUrl/" }
+      [ordered]@{ '@type' = 'ListItem'; position = 2; name = 'Videos'; item = "$siteUrl/all-videos.html" }
+      [ordered]@{ '@type' = 'ListItem'; position = 3; name = $cleanTitle; item = "$siteUrl/videos/$slug.html" }
+    )
+  }
+  $crumbJson = ($crumb | ConvertTo-Json -Depth 6) -replace ([char]0x3c), ([char]0x5c + 'u003c')
+
+  # ----- topical related (shared tags/topics, fall back to recency) -----
+  $mySet = $keySets[$id]
+  $ix = 0
+  $scored = foreach ($c in $all) {
+    if ($c.id -ne $id) {
+      $cs = $keySets[$c.id]; $score = 0
+      if ($mySet -and $cs -and $mySet.Count -gt 0 -and $cs.Count -gt 0) {
+        foreach ($k in $mySet) { if ($cs.Contains($k)) { $score++ } }
+      }
+      [pscustomobject]@{ v = $c; score = $score; idx = $ix }
+      $ix++
+    }
+  }
+  $others = @($scored | Sort-Object @{Expression = 'score'; Descending = $true }, @{Expression = 'idx'; Descending = $false } | Select-Object -First 3 | ForEach-Object { $_.v })
   $relatedHtml = (($others | ForEach-Object { Render-Card $_ '' }) -join "`n")
 
 @"
@@ -277,6 +386,9 @@ function Render-VideoPage($v, $all) {
   <script type="application/ld+json">
 $jsonld
   </script>
+  <script type="application/ld+json">
+$crumbJson
+  </script>
 </head>
 <body>
 
@@ -310,9 +422,8 @@ $jsonld
       </div>
 
       <h1>$titleEnc</h1>
-      <div class="video-stats">
-        <span>$datePretty</span><span class="dot">&bull;</span><span>$viewsPretty views</span>
-      </div>
+      <div class="video-stats">$statsHtml</div>
+      $topicsHtml
 
       <div class="video-actions">
         <a class="btn btn-primary" href="../index.html#videos">More Jensen videos</a>
@@ -321,7 +432,8 @@ $jsonld
 
       <div class="video-desc">
         <h2>About this video</h2>
-        <p>$descEnc</p>
+        $descHtml
+        $tagsHtml
       </div>
     </div>
 
@@ -379,12 +491,93 @@ $gridEval = [System.Text.RegularExpressions.MatchEvaluator] {
 $index = [System.Text.RegularExpressions.Regex]::Replace($index, '(?s)(<!-- VIDEOS:START -->).*?(<!-- VIDEOS:END -->)', $gridEval)
 Write-Utf8 $indexPath $index
 
+# ---------- all-videos hub page (every video linked server-side, grouped by year) ----------
+$hubRows = New-Object System.Text.StringBuilder
+$curYear = ''
+foreach ($v in $sorted) {
+  $y = Date-Fmt $v.publishedAt 'yyyy'
+  if (-not $y) { $y = 'Other' }
+  if ($y -ne $curYear) {
+    if ($curYear -ne '') { [void]$hubRows.AppendLine('      </ul>') }
+    [void]$hubRows.AppendLine("      <h2 class=`"year`">$y</h2>")
+    [void]$hubRows.AppendLine('      <ul class="all-videos">')
+    $curYear = $y
+  }
+  $t = HtmlEnc (Clean-Title $v.title)
+  $d = Date-Fmt $v.publishedAt 'MMM d, yyyy'
+  [void]$hubRows.AppendLine("        <li><a href=`"videos/$($v.slug).html`">$t</a> <span class=`"date`">$d</span></li>")
+}
+if ($curYear -ne '') { [void]$hubRows.AppendLine('      </ul>') }
+
+$hubHtml = @"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Videos | Jensen Off-Road</title>
+  <meta name="description" content="Every Jensen Off-Road video - off-road builds, Moab rock-crawling, Ultra4 racing, and GEN-3 ORI strut footage." />
+  <link rel="canonical" href="$siteUrl/all-videos.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="All Videos | Jensen Off-Road" />
+  <meta property="og:url" content="$siteUrl/all-videos.html" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a href="index.html" class="brand" aria-label="Jensen Off-Road home">
+        <img src="logo-light.svg" alt="Jensen Bros. Off-Road" class="logo" />
+      </a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html#videos">Videos</a>
+        <a href="all-videos.html">All Videos</a>
+        <a href="index.html#about">About</a>
+      </nav>
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">&#9776;</button>
+    </div>
+  </header>
+
+  <main class="wrap video-page">
+    <div class="video-main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Home</a> / <span>All Videos</span>
+      </nav>
+      <h1>All Videos</h1>
+      <p class="all-intro">Every video from Jensen Off-Road - $($sorted.Count) and counting.</p>
+$($hubRows.ToString())
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <div>
+        <div class="brand" style="margin-bottom:14px;">
+          <img src="logo-light.svg" alt="Jensen Bros. Off-Road" class="logo" />
+        </div>
+        <div class="copyright">&copy; <span id="year"></span> Jensen Off-Road. All rights reserved.</div>
+      </div>
+      <div class="socials">
+        <a href="https://www.youtube.com/channel/$($data.channelId)" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.8-.5-5.6a2.9 2.9 0 0 0-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4a2.9 2.9 0 0 0-2 2C1 8.2 1 12 1 12s0 3.8.5 5.6a2.9 2.9 0 0 0 2 2C5.3 20 12 20 12 20s6.7 0 8.5-.4a2.9 2.9 0 0 0 2-2C23 15.8 23 12 23 12zM10 15.5v-7l6 3.5z"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>
+"@
+Write-Utf8 (Join-Path $root 'all-videos.html') $hubHtml
+
 # ---------- sitemap ----------
 $today = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd')
 $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine('<?xml version="1.0" encoding="UTF-8"?>')
 [void]$sb.AppendLine('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
 [void]$sb.AppendLine("  <url><loc>$siteUrl/</loc><lastmod>$today</lastmod></url>")
+[void]$sb.AppendLine("  <url><loc>$siteUrl/all-videos.html</loc><lastmod>$today</lastmod></url>")
 foreach ($v in $sorted) {
   $lm = Date-Fmt $v.publishedAt 'yyyy-MM-dd'
   if (-not $lm) { $lm = $today }
