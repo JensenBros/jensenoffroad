@@ -44,13 +44,35 @@
     "duration":  "PT12S",
     "embedUrl":  "https://www.youtube.com/embed/fmDpVIs1v6Q",
     "contentUrl":  "https://www.youtube.com/watch?v=fmDpVIs1v6Q",
-    "interactionStatistic":  {
-                                 "@type":  "InteractionCounter",
-                                 "interactionType":  {
-                                                         "@type":  "https://schema.org/WatchAction"
-                                                     },
-                                 "userInteractionCount":  1541
-                             },
+    "genre":  "Autos \u0026 Vehicles",
+    "about":  [
+                  {
+                      "@type":  "Thing",
+                      "name":  "Lifestyle (sociology)",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Lifestyle_(sociology)"
+                  },
+                  {
+                      "@type":  "Thing",
+                      "name":  "Motorsport",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Motorsport"
+                  }
+              ],
+    "interactionStatistic":  [
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/WatchAction"
+                                                         },
+                                     "userInteractionCount":  1541
+                                 },
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/LikeAction"
+                                                         },
+                                     "userInteractionCount":  31
+                                 }
+                             ],
     "publisher":  {
                       "@type":  "Organization",
                       "name":  "Jensen Off-Road",
@@ -59,6 +81,32 @@
                                    "url":  "https://jensenoffroad.com/logo.svg"
                                }
                   }
+}
+  </script>
+  <script type="application/ld+json">
+{
+    "@context":  "https://schema.org",
+    "@type":  "BreadcrumbList",
+    "itemListElement":  [
+                            {
+                                "@type":  "ListItem",
+                                "position":  1,
+                                "name":  "Home",
+                                "item":  "https://jensenoffroad.com/"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  2,
+                                "name":  "Videos",
+                                "item":  "https://jensenoffroad.com/all-videos.html"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  3,
+                                "name":  "Demolition Derby Destruction",
+                                "item":  "https://jensenoffroad.com/videos/demolition-derby-destruction.html"
+                            }
+                        ]
 }
   </script>
 </head>
@@ -94,9 +142,8 @@
       </div>
 
       <h1>Demolition Derby Destruction</h1>
-      <div class="video-stats">
-        <span>August 7, 2023</span><span class="dot">&bull;</span><span>1,541 views</span>
-      </div>
+      <div class="video-stats"><span>August 7, 2023</span><span class="dot">&bull;</span><span>1,541 views</span><span class="dot">&bull;</span><span>31 likes</span></div>
+      <div class="topics"><span class="topics-label">Topics:</span> <span class="topic-cat">Autos &amp; Vehicles</span> <a class="topic" href="https://en.wikipedia.org/wiki/Lifestyle_(sociology)" target="_blank" rel="noopener">Lifestyle (sociology)</a> <a class="topic" href="https://en.wikipedia.org/wiki/Motorsport" target="_blank" rel="noopener">Motorsport</a></div>
 
       <div class="video-actions">
         <a class="btn btn-primary" href="../index.html#videos">More Jensen videos</a>
@@ -106,6 +153,7 @@
       <div class="video-desc">
         <h2>About this video</h2>
         <p>Demolition Derby Destruction - off-road video from Jensen Off-Road.</p>
+        
       </div>
     </div>
 

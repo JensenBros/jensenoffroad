@@ -44,13 +44,47 @@
     "duration":  "PT1M15S",
     "embedUrl":  "https://www.youtube.com/embed/aAxMNrCw6Ok",
     "contentUrl":  "https://www.youtube.com/watch?v=aAxMNrCw6Ok",
-    "interactionStatistic":  {
-                                 "@type":  "InteractionCounter",
-                                 "interactionType":  {
-                                                         "@type":  "https://schema.org/WatchAction"
-                                                     },
-                                 "userInteractionCount":  342
-                             },
+    "genre":  "Autos \u0026 Vehicles",
+    "about":  [
+                  {
+                      "@type":  "Thing",
+                      "name":  "Lifestyle (sociology)",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Lifestyle_(sociology)"
+                  },
+                  {
+                      "@type":  "Thing",
+                      "name":  "Motorsport",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Motorsport"
+                  },
+                  {
+                      "@type":  "Thing",
+                      "name":  "Vehicle",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Vehicle"
+                  }
+              ],
+    "interactionStatistic":  [
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/WatchAction"
+                                                         },
+                                     "userInteractionCount":  342
+                                 },
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/LikeAction"
+                                                         },
+                                     "userInteractionCount":  12
+                                 },
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/CommentAction"
+                                                         },
+                                     "userInteractionCount":  3
+                                 }
+                             ],
     "publisher":  {
                       "@type":  "Organization",
                       "name":  "Jensen Off-Road",
@@ -59,6 +93,32 @@
                                    "url":  "https://jensenoffroad.com/logo.svg"
                                }
                   }
+}
+  </script>
+  <script type="application/ld+json">
+{
+    "@context":  "https://schema.org",
+    "@type":  "BreadcrumbList",
+    "itemListElement":  [
+                            {
+                                "@type":  "ListItem",
+                                "position":  1,
+                                "name":  "Home",
+                                "item":  "https://jensenoffroad.com/"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  2,
+                                "name":  "Videos",
+                                "item":  "https://jensenoffroad.com/all-videos.html"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  3,
+                                "name":  "ORI GEN-3 Racing Struts Testing in The Rocks at 5-Mile Pass Utah",
+                                "item":  "https://jensenoffroad.com/videos/ori-gen-3-racing-struts-testing-in-the-rocks-at-5-mile-pass.html"
+                            }
+                        ]
 }
   </script>
 </head>
@@ -94,9 +154,8 @@
       </div>
 
       <h1>ORI GEN-3 Racing Struts Testing in The Rocks at 5-Mile Pass Utah</h1>
-      <div class="video-stats">
-        <span>August 30, 2024</span><span class="dot">&bull;</span><span>342 views</span>
-      </div>
+      <div class="video-stats"><span>August 30, 2024</span><span class="dot">&bull;</span><span>342 views</span><span class="dot">&bull;</span><span>12 likes</span><span class="dot">&bull;</span><span>3 comments</span></div>
+      <div class="topics"><span class="topics-label">Topics:</span> <span class="topic-cat">Autos &amp; Vehicles</span> <a class="topic" href="https://en.wikipedia.org/wiki/Lifestyle_(sociology)" target="_blank" rel="noopener">Lifestyle (sociology)</a> <a class="topic" href="https://en.wikipedia.org/wiki/Motorsport" target="_blank" rel="noopener">Motorsport</a> <a class="topic" href="https://en.wikipedia.org/wiki/Vehicle" target="_blank" rel="noopener">Vehicle</a></div>
 
       <div class="video-actions">
         <a class="btn btn-primary" href="../index.html#videos">More Jensen videos</a>
@@ -106,6 +165,7 @@
       <div class="video-desc">
         <h2>About this video</h2>
         <p>Out testing in the rocks with ORI Struts at 5-mile pass in Utah.</p>
+        
       </div>
     </div>
 

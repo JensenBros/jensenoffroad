@@ -44,13 +44,40 @@
     "duration":  "PT13S",
     "embedUrl":  "https://www.youtube.com/embed/qnBNKgFzmKg",
     "contentUrl":  "https://www.youtube.com/watch?v=qnBNKgFzmKg",
-    "interactionStatistic":  {
-                                 "@type":  "InteractionCounter",
-                                 "interactionType":  {
-                                                         "@type":  "https://schema.org/WatchAction"
-                                                     },
-                                 "userInteractionCount":  7584
-                             },
+    "genre":  "Autos \u0026 Vehicles",
+    "about":  [
+                  {
+                      "@type":  "Thing",
+                      "name":  "Lifestyle (sociology)",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Lifestyle_(sociology)"
+                  },
+                  {
+                      "@type":  "Thing",
+                      "name":  "Motorsport",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Motorsport"
+                  },
+                  {
+                      "@type":  "Thing",
+                      "name":  "Vehicle",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Vehicle"
+                  }
+              ],
+    "interactionStatistic":  [
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/WatchAction"
+                                                         },
+                                     "userInteractionCount":  7584
+                                 },
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/LikeAction"
+                                                         },
+                                     "userInteractionCount":  115
+                                 }
+                             ],
     "publisher":  {
                       "@type":  "Organization",
                       "name":  "Jensen Off-Road",
@@ -59,6 +86,32 @@
                                    "url":  "https://jensenoffroad.com/logo.svg"
                                }
                   }
+}
+  </script>
+  <script type="application/ld+json">
+{
+    "@context":  "https://schema.org",
+    "@type":  "BreadcrumbList",
+    "itemListElement":  [
+                            {
+                                "@type":  "ListItem",
+                                "position":  1,
+                                "name":  "Home",
+                                "item":  "https://jensenoffroad.com/"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  2,
+                                "name":  "Videos",
+                                "item":  "https://jensenoffroad.com/all-videos.html"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  3,
+                                "name":  "How ORI Tests For KOH Rocks in Utah.",
+                                "item":  "https://jensenoffroad.com/videos/how-ori-tests-for-koh-rocks-in-utah.html"
+                            }
+                        ]
 }
   </script>
 </head>
@@ -94,9 +147,8 @@
       </div>
 
       <h1>How ORI Tests For KOH Rocks in Utah.</h1>
-      <div class="video-stats">
-        <span>November 1, 2025</span><span class="dot">&bull;</span><span>7,584 views</span>
-      </div>
+      <div class="video-stats"><span>November 1, 2025</span><span class="dot">&bull;</span><span>7,584 views</span><span class="dot">&bull;</span><span>115 likes</span></div>
+      <div class="topics"><span class="topics-label">Topics:</span> <span class="topic-cat">Autos &amp; Vehicles</span> <a class="topic" href="https://en.wikipedia.org/wiki/Lifestyle_(sociology)" target="_blank" rel="noopener">Lifestyle (sociology)</a> <a class="topic" href="https://en.wikipedia.org/wiki/Motorsport" target="_blank" rel="noopener">Motorsport</a> <a class="topic" href="https://en.wikipedia.org/wiki/Vehicle" target="_blank" rel="noopener">Vehicle</a></div>
 
       <div class="video-actions">
         <a class="btn btn-primary" href="../index.html#videos">More Jensen videos</a>
@@ -106,6 +158,7 @@
       <div class="video-desc">
         <h2>About this video</h2>
         <p>ORI struts ultra4 car testing on the rocks here in Utah.</p>
+        
       </div>
     </div>
 

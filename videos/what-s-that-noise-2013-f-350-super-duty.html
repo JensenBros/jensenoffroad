@@ -44,13 +44,42 @@
     "duration":  "PT26S",
     "embedUrl":  "https://www.youtube.com/embed/rrMSNqx_IV8",
     "contentUrl":  "https://www.youtube.com/watch?v=rrMSNqx_IV8",
-    "interactionStatistic":  {
-                                 "@type":  "InteractionCounter",
-                                 "interactionType":  {
-                                                         "@type":  "https://schema.org/WatchAction"
-                                                     },
-                                 "userInteractionCount":  804
-                             },
+    "genre":  "Autos \u0026 Vehicles",
+    "about":  [
+                  {
+                      "@type":  "Thing",
+                      "name":  "Lifestyle (sociology)",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Lifestyle_(sociology)"
+                  },
+                  {
+                      "@type":  "Thing",
+                      "name":  "Vehicle",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Vehicle"
+                  }
+              ],
+    "interactionStatistic":  [
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/WatchAction"
+                                                         },
+                                     "userInteractionCount":  804
+                                 },
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/LikeAction"
+                                                         },
+                                     "userInteractionCount":  5
+                                 },
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/CommentAction"
+                                                         },
+                                     "userInteractionCount":  3
+                                 }
+                             ],
     "publisher":  {
                       "@type":  "Organization",
                       "name":  "Jensen Off-Road",
@@ -59,6 +88,32 @@
                                    "url":  "https://jensenoffroad.com/logo.svg"
                                }
                   }
+}
+  </script>
+  <script type="application/ld+json">
+{
+    "@context":  "https://schema.org",
+    "@type":  "BreadcrumbList",
+    "itemListElement":  [
+                            {
+                                "@type":  "ListItem",
+                                "position":  1,
+                                "name":  "Home",
+                                "item":  "https://jensenoffroad.com/"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  2,
+                                "name":  "Videos",
+                                "item":  "https://jensenoffroad.com/all-videos.html"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  3,
+                                "name":  "What’s That Noise!? 2013 F-350 Super Duty",
+                                "item":  "https://jensenoffroad.com/videos/what-s-that-noise-2013-f-350-super-duty.html"
+                            }
+                        ]
 }
   </script>
 </head>
@@ -94,9 +149,8 @@
       </div>
 
       <h1>What’s That Noise!? 2013 F-350 Super Duty</h1>
-      <div class="video-stats">
-        <span>March 18, 2021</span><span class="dot">&bull;</span><span>804 views</span>
-      </div>
+      <div class="video-stats"><span>March 18, 2021</span><span class="dot">&bull;</span><span>804 views</span><span class="dot">&bull;</span><span>5 likes</span><span class="dot">&bull;</span><span>3 comments</span></div>
+      <div class="topics"><span class="topics-label">Topics:</span> <span class="topic-cat">Autos &amp; Vehicles</span> <a class="topic" href="https://en.wikipedia.org/wiki/Lifestyle_(sociology)" target="_blank" rel="noopener">Lifestyle (sociology)</a> <a class="topic" href="https://en.wikipedia.org/wiki/Vehicle" target="_blank" rel="noopener">Vehicle</a></div>
 
       <div class="video-actions">
         <a class="btn btn-primary" href="../index.html#videos">More Jensen videos</a>
@@ -106,6 +160,7 @@
       <div class="video-desc">
         <h2>About this video</h2>
         <p>My f-350 is making some cavitation like sound when I downshift or accelerate. Basically whenever it’s at high RPMs. Not sure what it is...</p>
+        
       </div>
     </div>
 

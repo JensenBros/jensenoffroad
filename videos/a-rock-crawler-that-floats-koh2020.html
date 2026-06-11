@@ -44,13 +44,47 @@
     "duration":  "PT48S",
     "embedUrl":  "https://www.youtube.com/embed/9eYkT-HeRfg",
     "contentUrl":  "https://www.youtube.com/watch?v=9eYkT-HeRfg",
-    "interactionStatistic":  {
-                                 "@type":  "InteractionCounter",
-                                 "interactionType":  {
-                                                         "@type":  "https://schema.org/WatchAction"
-                                                     },
-                                 "userInteractionCount":  365
-                             },
+    "genre":  "Autos \u0026 Vehicles",
+    "about":  [
+                  {
+                      "@type":  "Thing",
+                      "name":  "Lifestyle (sociology)",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Lifestyle_(sociology)"
+                  },
+                  {
+                      "@type":  "Thing",
+                      "name":  "Motorsport",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Motorsport"
+                  },
+                  {
+                      "@type":  "Thing",
+                      "name":  "Vehicle",
+                      "sameAs":  "https://en.wikipedia.org/wiki/Vehicle"
+                  }
+              ],
+    "interactionStatistic":  [
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/WatchAction"
+                                                         },
+                                     "userInteractionCount":  365
+                                 },
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/LikeAction"
+                                                         },
+                                     "userInteractionCount":  11
+                                 },
+                                 {
+                                     "@type":  "InteractionCounter",
+                                     "interactionType":  {
+                                                             "@type":  "https://schema.org/CommentAction"
+                                                         },
+                                     "userInteractionCount":  2
+                                 }
+                             ],
     "publisher":  {
                       "@type":  "Organization",
                       "name":  "Jensen Off-Road",
@@ -59,6 +93,32 @@
                                    "url":  "https://jensenoffroad.com/logo.svg"
                                }
                   }
+}
+  </script>
+  <script type="application/ld+json">
+{
+    "@context":  "https://schema.org",
+    "@type":  "BreadcrumbList",
+    "itemListElement":  [
+                            {
+                                "@type":  "ListItem",
+                                "position":  1,
+                                "name":  "Home",
+                                "item":  "https://jensenoffroad.com/"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  2,
+                                "name":  "Videos",
+                                "item":  "https://jensenoffroad.com/all-videos.html"
+                            },
+                            {
+                                "@type":  "ListItem",
+                                "position":  3,
+                                "name":  "A Rock Crawler That Floats! KOH2020",
+                                "item":  "https://jensenoffroad.com/videos/a-rock-crawler-that-floats-koh2020.html"
+                            }
+                        ]
 }
   </script>
 </head>
@@ -94,9 +154,8 @@
       </div>
 
       <h1>A Rock Crawler That Floats! KOH2020</h1>
-      <div class="video-stats">
-        <span>February 11, 2020</span><span class="dot">&bull;</span><span>365 views</span>
-      </div>
+      <div class="video-stats"><span>February 11, 2020</span><span class="dot">&bull;</span><span>365 views</span><span class="dot">&bull;</span><span>11 likes</span><span class="dot">&bull;</span><span>2 comments</span></div>
+      <div class="topics"><span class="topics-label">Topics:</span> <span class="topic-cat">Autos &amp; Vehicles</span> <a class="topic" href="https://en.wikipedia.org/wiki/Lifestyle_(sociology)" target="_blank" rel="noopener">Lifestyle (sociology)</a> <a class="topic" href="https://en.wikipedia.org/wiki/Motorsport" target="_blank" rel="noopener">Motorsport</a> <a class="topic" href="https://en.wikipedia.org/wiki/Vehicle" target="_blank" rel="noopener">Vehicle</a></div>
 
       <div class="video-actions">
         <a class="btn btn-primary" href="../index.html#videos">More Jensen videos</a>
@@ -106,6 +165,7 @@
       <div class="video-desc">
         <h2>About this video</h2>
         <p>This rock crawler by Twisted Stick Off-Road can not only float but ran good time on the KOH shootout in 2020.</p>
+        
       </div>
     </div>
 
