@@ -263,6 +263,7 @@ function Render-VideoPage($v, $all) {
 
   # ----- enrichment fields (all optional / guarded) -----
   $tags = As-Array $v.tags
+  $shownTags = @($tags | Select-Object -First 12)   # cap the visible + keyword set so it isn't a keyword-stuffed wall
   $topics = As-Array $v.topicCategories
   $catName = if ($v.PSObject.Properties['categoryName']) { [string]$v.categoryName } else { '' }
   $likeCount = $null;    if ($v.likeCount)    { try { $likeCount    = [int64]$v.likeCount }    catch {} }
@@ -285,7 +286,7 @@ function Render-VideoPage($v, $all) {
   if ($catName) { $topoParts += '<span class="topic-cat">' + (HtmlEnc $catName) + '</span>' }
   foreach ($u in $topics) {
     $tn = Topic-Name ([string]$u)
-    if ($tn) { $topoParts += '<a class="topic" href="' + (HtmlEnc ([string]$u)) + '" target="_blank" rel="noopener">' + (HtmlEnc $tn) + '</a>' }
+    if ($tn) { $topoParts += '<span class="topic">' + (HtmlEnc $tn) + '</span>' }   # plain label, no outbound link (keeps visitors on-site)
   }
   $topicsHtml = ''
   if ($topoParts.Count -gt 0) { $topicsHtml = '<div class="topics"><span class="topics-label">Topics:</span> ' + ($topoParts -join ' ') + '</div>' }
@@ -296,8 +297,8 @@ function Render-VideoPage($v, $all) {
 
   # tag chips (visible)
   $tagsHtml = ''
-  if ($tags.Count -gt 0) {
-    $chips = (($tags | Select-Object -First 18 | ForEach-Object { '<span class="tag">' + (HtmlEnc ([string]$_)) + '</span>' }) -join '')
+  if ($shownTags.Count -gt 0) {
+    $chips = (($shownTags | ForEach-Object { '<span class="tag">' + (HtmlEnc ([string]$_)) + '</span>' }) -join ' ')
     $tagsHtml = '<div class="tags" aria-label="Tags">' + $chips + '</div>'
   }
 
@@ -311,7 +312,7 @@ function Render-VideoPage($v, $all) {
   if ($v.duration) { $ld['duration'] = $v.duration }
   $ld['embedUrl'] = "https://www.youtube.com/embed/$id"
   $ld['contentUrl'] = "https://www.youtube.com/watch?v=$id"
-  if ($tags.Count -gt 0) { $ld['keywords'] = ($tags -join ', ') }
+  if ($shownTags.Count -gt 0) { $ld['keywords'] = ($shownTags -join ', ') }
   if ($catName) { $ld['genre'] = $catName }
   if ($topics.Count -gt 0) {
     $ld['about'] = @($topics | ForEach-Object { [ordered]@{ '@type' = 'Thing'; name = (Topic-Name ([string]$_)); sameAs = [string]$_ } })
