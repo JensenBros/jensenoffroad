@@ -1,0 +1,5 @@
+# Build/deploy assembly folder (created by the GitHub Actions workflow)
+_site/
+
+# Local preview helper (created on the fly when generating a preview)
+.preview-server.ps1
