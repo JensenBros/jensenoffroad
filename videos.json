@@ -1,0 +1,60 @@
+{
+    "channelId":  "UC0N-5ttcHCk65Ya9Q0ZH6qw",
+    "channelTitle":  "Jensen Brothers Off-Road",
+    "videos":  [
+                   {
+                       "id":  "XyV_CeFWLTQ",
+                       "slug":  "gen-3-ori-struts-harshest-terrain",
+                       "title":  "GEN-3 ORI Struts Take on The Harshest Terrain in The World #oristruts",
+                       "description":  "GEN-3 ORI struts on a modified rock bouncer turned Ultra4 race car at King of the Hammers 2026, taking on the harshest terrain in the world.",
+                       "publishedAt":  "2026-06-04T02:52:27+00:00",
+                       "duration":  "PT45S",
+                       "viewCount":  1008
+                   },
+                   {
+                       "id":  "gADsSMrPFXA",
+                       "slug":  "gen3-oris-pritchett-canyon-moab",
+                       "title":  "GEN3 ORIs at Pritchett Canyon, Moab Utah!",
+                       "description":  "Pritchett Canyon was one for the books on our GEN3 ORI struts!",
+                       "publishedAt":  "2026-05-08T22:53:05+00:00",
+                       "duration":  "PT15S",
+                       "viewCount":  1788
+                   },
+                   {
+                       "id":  "sZHY3C69Rqo",
+                       "slug":  "above-rocker-knocker-pritchett-canyon-moab",
+                       "title":  "HARDER THAN IT LOOKS! Above Rocker Knocker in Pritchett canyon, Moab Utah",
+                       "description":  "Rock crawling out the top of Rocker Knocker in Pritchett Canyon, Moab, Utah.",
+                       "publishedAt":  "2026-05-06T16:08:34+00:00",
+                       "duration":  "PT22S",
+                       "viewCount":  2452
+                   },
+                   {
+                       "id":  "mec_CZQUTq0",
+                       "slug":  "most-cars-would-flip-picking-these-lines",
+                       "title":  "Most Cars Would Flip Picking These Lines!",
+                       "description":  "Most cars would flip picking these lines in Moab, Utah.",
+                       "publishedAt":  "2026-05-04T17:07:53+00:00",
+                       "duration":  "PT35S",
+                       "viewCount":  8003
+                   },
+                   {
+                       "id":  "pGvH-YXKBVM",
+                       "slug":  "hells-gate-never-disappoints",
+                       "title":  "Hells Gate Never Disappoints! #oristruts",
+                       "description":  "Hells Gate in Moab, Utah on the Hells Revenge trail.",
+                       "publishedAt":  "2026-05-03T03:58:31+00:00",
+                       "duration":  "PT14S",
+                       "viewCount":  26955
+                   },
+                   {
+                       "id":  "Y5qCfjC1qfI",
+                       "slug":  "moab-redrok-rally-2026",
+                       "title":  "When in Doubt… Cameras Out! Moab RedRok Rally 2026 With ORI Struts",
+                       "description":  "Highlights from the 2026 Moab RedRok Rally — we ran Hells Revenge and Pritchett Canyon.",
+                       "publishedAt":  "2026-04-27T02:22:36+00:00",
+                       "duration":  "PT1M20S",
+                       "viewCount":  270
+                   }
+               ]
+}
