@@ -88,6 +88,48 @@ function Topic-Name([string]$url) {
   ($seg -replace '_', ' ').Trim()
 }
 
+# --- Visible topic chips: curated so the line stays on-brand. -------------------------------
+# YouTube auto-assigns topicDetails.topicCategories (returned as Wikipedia URLs); we decide what
+# the VISITOR sees here. The FULL raw set is still emitted in the JSON-LD about/sameAs entity
+# signal regardless of this filtering, so SEO/entity coverage is unchanged.
+# Keys below are lowercase Wikipedia slugs (the last path segment, underscores kept).
+$TopicHide = @(                 # vague / academic nodes we never want to surface to visitors
+  'lifestyle_(sociology)', 'society', 'knowledge', 'hobby',
+  'physical_fitness', 'entertainment', 'health', 'pet'
+)
+$TopicLabels = @{               # clean, branded relabels for nodes we DO show
+  'off-roading' = 'Off-Roading'
+  'motorsport'  = 'Motorsport'
+  'auto_racing' = 'Auto Racing'
+  'sport'       = 'Motorsports'
+  'vehicle'     = 'Vehicles'
+  'tourism'     = 'Travel'
+  'adventure'   = 'Adventure'
+}
+
+# Normalize a label for dedupe: drop case, spaces, punctuation, and a trailing plural 's'.
+function Topic-Norm([string]$s) { (($s -replace '[^A-Za-z0-9]', '').ToLowerInvariant()) -replace 's$', '' }
+
+# Curated display label for a topic URL, or $null to hide its chip.
+#   $catName    = this video's category (drop topics redundant with it, e.g. Vehicle vs Autos & Vehicles)
+#   $shownNorms = normalized labels already shown on this video (avoid near-duplicates)
+function Topic-Display([string]$url, [string]$catName, $shownNorms) {
+  $slug = (($url -split '/wiki/')[-1])
+  try { $slug = [System.Uri]::UnescapeDataString($slug) } catch { }
+  $slug = $slug.ToLowerInvariant()
+  if ($TopicHide -contains $slug) { return $null }
+  $label = if ($TopicLabels.ContainsKey($slug)) { $TopicLabels[$slug] } else { (Topic-Name $url) -replace '\s*\(.*?\)\s*$', '' }
+  $label = $label.Trim()
+  if ([string]::IsNullOrWhiteSpace($label)) { return $null }
+  $n = Topic-Norm $label
+  if ($n) {
+    $cn = Topic-Norm $catName
+    if ($cn -and $cn.Contains($n)) { return $null }   # redundant with the category chip
+    if ($shownNorms -contains $n)  { return $null }   # already shown
+  }
+  return $label
+}
+
 # Coerce a possibly-null API list into a real array (avoid @(null) -> 1-element array).
 function As-Array($x) { if ($null -eq $x) { return , @() } else { return , @($x) } }   # comma-wrap so a single-element list isn't unwrapped to a scalar on return
 
@@ -281,12 +323,16 @@ function Render-VideoPage($v, $all) {
   if ($recPretty)    { $statBits += '<span>Filmed ' + (HtmlEnc $recPretty) + '</span>' }
   $statsHtml = ($statBits -join '<span class="dot">&bull;</span>')
 
-  # category + topic entity links (visible)
+  # category + topic entity chips (visible, curated on-brand — full raw set still goes to JSON-LD below)
   $topoParts = @()
   if ($catName) { $topoParts += '<span class="topic-cat">' + (HtmlEnc $catName) + '</span>' }
+  $shownNorms = @()
   foreach ($u in $topics) {
-    $tn = Topic-Name ([string]$u)
-    if ($tn) { $topoParts += '<span class="topic">' + (HtmlEnc $tn) + '</span>' }   # plain label, no outbound link (keeps visitors on-site)
+    $tn = Topic-Display ([string]$u) $catName $shownNorms
+    if ($tn) {
+      $topoParts += '<span class="topic">' + (HtmlEnc $tn) + '</span>'   # plain label, no outbound link (keeps visitors on-site)
+      $shownNorms += (Topic-Norm $tn)
+    }
   }
   $topicsHtml = ''
   if ($topoParts.Count -gt 0) { $topicsHtml = '<div class="topics"><span class="topics-label">Topics:</span> ' + ($topoParts -join ' ') + '</div>' }
